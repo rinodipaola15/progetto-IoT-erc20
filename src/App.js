@@ -1,25 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+//Connessione al wallet Metamask
 
-function App() {
+import { useState, useEffect } from 'react'
+import AppAuthenticated from "./components/AppAuthenticated"
+const Web3 = require("web3");
+
+const App = () => {
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [instruction, setInstruction] = useState("In attesa per la connessione con il wallet...");
+
+  useEffect(() => {
+    const connectWallet = async () => { //questa funzione proverà a connettersi al wallet
+      if(!window.ethereum)
+        return;
+
+      try {
+        await window.ethereum.send('eth_requestAccounts');
+        window.web3 = new Web3(window.ethereum);
+      } catch (error) {
+        setInstruction("Connessione al Wallet rifiutata, ricarica la pagina per riprovare di nuovo.");
+        return;
+      }
+      setInstruction("");
+      setWalletConnected(true);
+    };
+    connectWallet();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {window.ethereum ?
+        (walletConnected ?
+          <AppAuthenticated/>
+          : instruction)
+        : "Metamask o un altri wallet conformi a EIP-1102 / EIP-1193 non trovati."
+      }
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
